@@ -26,6 +26,8 @@ def align_images(a_file_paths, b_file_paths, target_path):
         img_b = Image.open(b_file_paths[i])
         assert(img_a.size == img_b.size)
 
+        # 对齐操作，转换rgb，双倍大小，
+        # 粘贴 图片a，旁边粘贴图片b，合成一张图片
         aligned_image = Image.new("RGB", (img_a.size[0] * 2, img_a.size[1]))
         aligned_image.paste(img_a, (0, 0))
         aligned_image.paste(img_b, (img_a.size[0], 0))

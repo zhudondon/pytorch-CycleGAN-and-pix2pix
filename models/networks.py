@@ -38,7 +38,7 @@ def get_norm_layer(norm_type='instance'):
 
 def get_scheduler(optimizer, opt):
     """Return a learning rate scheduler
-
+    返回学习率的调度器
     Parameters:
         optimizer          -- the optimizer of the network
         opt (option class) -- stores all the experiment flags; needs to be a subclass of BaseOptions．　
@@ -48,6 +48,12 @@ def get_scheduler(optimizer, opt):
     and linearly decay the rate to zero over the next <opt.n_epochs_decay> epochs.
     For other schedulers (step, plateau, and cosine), we use the default PyTorch schedulers.
     See https://pytorch.org/docs/stable/optim.html for more details.
+
+    decay 衰减
+    支持 线性 linear
+    step 步长
+    plateau 高原;(发展、增长后的)稳定期，停滞期;
+    cosine 余弦
     """
     if opt.lr_policy == 'linear':
         def lambda_rule(epoch):

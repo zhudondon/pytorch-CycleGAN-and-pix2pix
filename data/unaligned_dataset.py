@@ -7,6 +7,8 @@ import random
 
 class UnalignedDataset(BaseDataset):
     """
+    align 对齐
+    这里是指 可以加载非对齐 或者 非配对 的数据集
     This dataset class can load unaligned/unpaired datasets.
 
     It requires two directories to host training images from domain A '/path/to/data/trainA'
@@ -54,9 +56,10 @@ class UnalignedDataset(BaseDataset):
         else:   # randomize the index for domain B to avoid fixed pairs.
             index_B = random.randint(0, self.B_size - 1)
         B_path = self.B_paths[index_B]
+        # 将图片转换成rgb 格式
         A_img = Image.open(A_path).convert('RGB')
         B_img = Image.open(B_path).convert('RGB')
-        # apply image transformation
+        # apply image transformation 将图片 rgb 转换为 矩阵
         A = self.transform_A(A_img)
         B = self.transform_B(B_img)
 
