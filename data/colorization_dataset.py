@@ -52,6 +52,8 @@ class ColorizationDataset(BaseDataset):
             B (tensor) - - the ab channels of the same image
             A_paths (str) - - image paths
             B_paths (str) - - image paths (same as A_paths)
+            这里处理
+            RGB与Lab颜色空间互相转换
         """
         path = self.AB_paths[index]
         im = Image.open(path).convert('RGB')

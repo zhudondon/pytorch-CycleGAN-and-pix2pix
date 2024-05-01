@@ -7,6 +7,9 @@ from . import networks
 
 class BaseModel(ABC):
     """This class is an abstract base class (ABC) for models.
+
+    基础模型
+
     To create a subclass, you need to implement the following five functions:
         -- <__init__>:                      initialize the class; first call BaseModel.__init__(self, opt).
         -- <set_input>:                     unpack data from dataset and apply preprocessing.
@@ -43,6 +46,9 @@ class BaseModel(ABC):
         self.image_paths = []
         self.metric = 0  # used for learning rate policy 'plateau'
 
+    #     基础模型 主要定义了配置，
+    #     训练标准，训练设备，保存目录，损失函数列表，模型列表，可视化列表，优化器列表，图片路径列表
+
     @staticmethod
     def modify_commandline_options(parser, is_train):
         """Add new model-specific options, and rewrite default values for existing options.
@@ -77,13 +83,16 @@ class BaseModel(ABC):
 
     def setup(self, opt):
         """Load and print networks; create schedulers
-
+        设置 配置项
         Parameters:
             opt (Option class) -- stores all the experiment flags; needs to be a subclass of BaseOptions
         """
         if self.isTrain:
+            # 训练 遍历 优化器，通过 网络工具 获取 学习率衰减的调度器；
+            # 优化器 调度的 频率 由调度器控制
             self.schedulers = [networks.get_scheduler(optimizer, opt) for optimizer in self.optimizers]
         if not self.isTrain or opt.continue_train:
+            # 非训练 或者是 继续训练，之间加载网络 根据前缀
             load_suffix = 'iter_%d' % opt.load_iter if opt.load_iter > 0 else opt.epoch
             self.load_networks(load_suffix)
         self.print_networks(opt.verbose)
@@ -114,6 +123,13 @@ class BaseModel(ABC):
         return self.image_paths
 
     def update_learning_rate(self):
+        # 给所有网络更新学习率 【在每个 epoch 的结尾会调用】
+        # 获取第一个 优化器，第一个分组 的 学习率
+        #
+        # 遍历所有的调度器，调用调度器的 step方法，进行下一步的计算  self.last_epoch += 1 ,并且调用 get_lr() 抽象方法获取最新的学习率
+        # lr_scheduler.py 中有 实现
+        #
+        # 啊
         """Update learning rates for all the networks; called at the end of every epoch"""
         old_lr = self.optimizers[0].param_groups[0]['lr']
         for scheduler in self.schedulers:
@@ -133,6 +149,7 @@ class BaseModel(ABC):
                 visual_ret[name] = getattr(self, name)
         return visual_ret
 
+    # 获取损失值 字典，根据损失名字
     def get_current_losses(self):
         """Return traning losses / errors. train.py will print out these errors on console, and save them to a file"""
         errors_ret = OrderedDict()
@@ -143,7 +160,7 @@ class BaseModel(ABC):
 
     def save_networks(self, epoch):
         """Save all the networks to the disk.
-
+        保存所有网络到 磁盘 文件 pth 结尾，最终可以使用
         Parameters:
             epoch (int) -- current epoch; used in the file name '%s_net_%s.pth' % (epoch, name)
         """
@@ -175,7 +192,8 @@ class BaseModel(ABC):
 
     def load_networks(self, epoch):
         """Load all the networks from the disk.
-
+        加载网络
+        加载之后，可以进行进行训练；
         Parameters:
             epoch (int) -- current epoch; used in the file name '%s_net_%s.pth' % (epoch, name)
         """

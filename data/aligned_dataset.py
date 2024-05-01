@@ -14,6 +14,8 @@ class AlignedDataset(BaseDataset):
     def __init__(self, opt):
         """Initialize this dataset class.
 
+        这里处理已经对齐的数据
+
         Parameters:
             opt (Option class) -- stores all the experiment flags; needs to be a subclass of BaseOptions
         """
@@ -39,6 +41,7 @@ class AlignedDataset(BaseDataset):
         # read a image given a random integer index
         AB_path = self.AB_paths[index]
         AB = Image.open(AB_path).convert('RGB')
+        # 转换为 rgb 格式，AB图片，然后进行 截图，位置是对应上的
         # split AB image into A and B
         w, h = AB.size
         w2 = int(w / 2)
