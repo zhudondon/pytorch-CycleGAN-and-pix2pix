@@ -112,6 +112,23 @@ def get_transform(opt, params=None, grayscale=False, method=transforms.Interpola
     return transforms.Compose(transform_list)
 
 
+def get_transformNew(params=None, grayscale=False, method=transforms.InterpolationMode.BICUBIC, convert=True):
+    transform_list = []
+    if params is None:
+        transform_list.append(transforms.RandomCrop(256))
+    else:
+        transform_list.append(transforms.Lambda(lambda img: __crop(img, params['crop_pos'], 256)))
+
+    if convert:
+        transform_list += [transforms.ToTensor()]
+        if grayscale:
+            transform_list += [transforms.Normalize((0.5,), (0.5,))]
+        else:
+            transform_list += [transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
+    return transforms.Compose(transform_list)
+
+
+
 def __transforms2pil_resize(method):
     mapper = {transforms.InterpolationMode.BILINEAR: Image.BILINEAR,
               transforms.InterpolationMode.BICUBIC: Image.BICUBIC,

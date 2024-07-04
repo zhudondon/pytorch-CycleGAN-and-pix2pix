@@ -126,26 +126,34 @@ class CycleGANModel(BaseModel):
 
         Return the discriminator loss.
         We also call loss_D.backward() to calculate the gradients.
+
+        基础反向传播， 用于调整 辨别器的参数
         """
-        # Real
+        # Real 预测真的能力 要顺便训练
         pred_real = netD(real)
         loss_D_real = self.criterionGAN(pred_real, True)
-        # Fake
+        # Fake 预测假的能力也要提升
         pred_fake = netD(fake.detach())
         loss_D_fake = self.criterionGAN(pred_fake, False)
-        # Combined loss and calculate gradients
+        # Combined loss and calculate gradients  最终得到 真，假 的损失值，合并，求和，取平均（因为是两个损失值）
         loss_D = (loss_D_real + loss_D_fake) * 0.5
+        # 方向传播后，返回 损失值
         loss_D.backward()
         return loss_D
 
     def backward_D_A(self):
         """Calculate GAN loss for discriminator D_A"""
+        # 从假B池中得到一个 假的B
         fake_B = self.fake_B_pool.query(self.fake_B)
+        # 使用A辨别器 进行训练，传入真的B和假的B,让A辨别器 有区分B真假的能力
+        # 得到A损失值
         self.loss_D_A = self.backward_D_basic(self.netD_A, self.real_B, fake_B)
 
     def backward_D_B(self):
         """Calculate GAN loss for discriminator D_B"""
+        # 从假A池中 获取假A
         fake_A = self.fake_A_pool.query(self.fake_A)
+        # B辨别器 能区分真假A
         self.loss_D_B = self.backward_D_basic(self.netD_B, self.real_A, fake_A)
 
     def backward_G(self):
@@ -165,11 +173,12 @@ class CycleGANModel(BaseModel):
             self.loss_idt_A = 0
             self.loss_idt_B = 0
 
-        # GAN loss D_A(G_A(A))
+        # GAN loss D_A(G_A(A)) 将b传入生成A，得到损失值
         self.loss_G_A = self.criterionGAN(self.netD_A(self.fake_B), True)
-        # GAN loss D_B(G_B(B))
+        # GAN loss D_B(G_B(B))  将a传入生成b，得到损失值
         self.loss_G_B = self.criterionGAN(self.netD_B(self.fake_A), True)
         # Forward cycle loss || G_B(G_A(A)) - A||
+        # 循环
         self.loss_cycle_A = self.criterionCycle(self.rec_A, self.real_A) * lambda_A
         # Backward cycle loss || G_A(G_B(B)) - B||
         self.loss_cycle_B = self.criterionCycle(self.rec_B, self.real_B) * lambda_B
