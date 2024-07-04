@@ -19,7 +19,7 @@ def main():
     # loading astronaut image
     # img = skimage.data.astronaut()
     # A_path = "D:/work/pic/测试图片/110101199603010001.jpg"
-    A_path = "D:/work/pic/abds.png"
+    A_path = "D:/work/pic/20240704144749.png"
     # img = Image.open(A_path).convert('RGB')
     # data_transform = transforms.Compose(
     #     [transforms.Resize((224, 224)),
@@ -64,7 +64,7 @@ def main():
 
 
     img_lbl, regions = selectivesearch.selective_search(
-        img, scale=5, sigma=0.75, min_size=5)
+        img, scale=1, sigma=0.8, min_size=10)
 
     # 1）第一次过滤
     candidates = []
@@ -73,11 +73,11 @@ def main():
         if r['rect'] in candidates:
             continue
         # 太小和太大的不要
-        if r['size'] < 2000 or r['size'] > 20000:
+        if r['size'] < 5000 or r['size'] > 40000:
             continue
         x, y, w, h = r['rect']
         # 太不方的不要
-        if w / h > 1 or h / w > 2:  # 根据实际情况调整
+        if w / h > 1.5 or h / w > 1.5:  # 根据实际情况调整
             continue
         candidates.append((x, y, w, h))
     print('len(candidates)', len(candidates))
