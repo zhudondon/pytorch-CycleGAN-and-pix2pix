@@ -231,14 +231,19 @@ class GANLoss(nn.Module):
 
         Note: Do not use sigmoid as the last layer of Discriminator.
         LSGAN needs no sigmoid. vanilla GANs will handle it with BCEWithLogitsLoss.
+
+
+        对抗生成 损失函数
         """
         super(GANLoss, self).__init__()
         self.register_buffer('real_label', torch.tensor(target_real_label))
         self.register_buffer('fake_label', torch.tensor(target_fake_label))
         self.gan_mode = gan_mode
         if gan_mode == 'lsgan':
+            # 均方差损失函数
             self.loss = nn.MSELoss()
         elif gan_mode == 'vanilla':
+            # 逻辑 Binary CrossEntropyLoss,也称为二元交叉熵损失,通常用于二分类问题中的损失函数
             self.loss = nn.BCEWithLogitsLoss()
         elif gan_mode in ['wgangp']:
             self.loss = None
@@ -286,6 +291,8 @@ class GANLoss(nn.Module):
 def cal_gradient_penalty(netD, real_data, fake_data, device, type='mixed', constant=1.0, lambda_gp=10.0):
     """Calculate the gradient penalty loss, used in WGAN-GP paper https://arxiv.org/abs/1704.00028
 
+    计算线性惩罚
+
     Arguments:
         netD (network)              -- discriminator network
         real_data (tensor array)    -- real images
@@ -293,7 +300,7 @@ def cal_gradient_penalty(netD, real_data, fake_data, device, type='mixed', const
         device (str)                -- GPU / CPU: from torch.device('cuda:{}'.format(self.gpu_ids[0])) if self.gpu_ids else torch.device('cpu')
         type (str)                  -- if we mix real and fake data or not [real | fake | mixed].
         constant (float)            -- the constant used in formula ( ||gradient||_2 - constant)^2
-        lambda_gp (float)           -- weight for this loss
+        lambda_gp (float)           -- weight for this loss 当前损失的权重值
 
     Returns the gradient penalty loss
     """
@@ -310,10 +317,12 @@ def cal_gradient_penalty(netD, real_data, fake_data, device, type='mixed', const
             raise NotImplementedError('{} not implemented'.format(type))
         interpolatesv.requires_grad_(True)
         disc_interpolates = netD(interpolatesv)
+        # 生成一个 梯度图
         gradients = torch.autograd.grad(outputs=disc_interpolates, inputs=interpolatesv,
                                         grad_outputs=torch.ones(disc_interpolates.size()).to(device),
                                         create_graph=True, retain_graph=True, only_inputs=True)
         gradients = gradients[0].view(real_data.size(0), -1)  # flat the data
+        # 梯度（偏导数） 加上 这个 值，得到新的（其实就是加上偏移量）
         gradient_penalty = (((gradients + 1e-16).norm(2, dim=1) - constant) ** 2).mean() * lambda_gp        # added eps
         return gradient_penalty, gradients
     else:
@@ -328,6 +337,8 @@ class ResnetGenerator(nn.Module):
 
     def __init__(self, input_nc, output_nc, ngf=64, norm_layer=nn.BatchNorm2d, use_dropout=False, n_blocks=6, padding_type='reflect'):
         """Construct a Resnet-based generator
+
+        resnet 为基础的 生成器
 
         Parameters:
             input_nc (int)      -- the number of channels in input images
@@ -374,6 +385,9 @@ class ResnetGenerator(nn.Module):
         model += [nn.Conv2d(ngf, output_nc, kernel_size=7, padding=0)]
         model += [nn.Tanh()]
 
+        # 以上整个过程，就是把resnet网络算法 的操作过程，通过有序的 列表，进行编排
+        # 例如输入，数据转换，输出信息等
+
         self.model = nn.Sequential(*model)
 
     def forward(self, input):
@@ -382,7 +396,12 @@ class ResnetGenerator(nn.Module):
 
 
 class ResnetBlock(nn.Module):
-    """Define a Resnet block"""
+    """Define a Resnet block
+        定义ResNet中的基本残差块
+
+        残差是一个块
+
+    """
 
     def __init__(self, dim, padding_type, norm_layer, use_dropout, use_bias):
         """Initialize the Resnet block
