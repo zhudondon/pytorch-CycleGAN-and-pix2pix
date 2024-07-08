@@ -575,6 +575,8 @@ class NLayerDiscriminator(nn.Module):
             norm_layer      -- normalization layer
         """
         super(NLayerDiscriminator, self).__init__()
+        # Batch Normalization使用mini-batch的均值和标准差对深度神经网络的隐藏层输入进行标准化，可有效地提升训练速度。
+        # 对于前向神经网络应用Batch Norm，使用简单SGD优化器，训练速度也能有较大提升。
         if type(norm_layer) == functools.partial:  # no need to use bias as BatchNorm2d has affine parameters
             use_bias = norm_layer.func == nn.InstanceNorm2d
         else:
